@@ -133,15 +133,17 @@ var the_key_map : Array[Dictionary] = [
 
 # The list of command keys we handle (other command keys will be handled by Godot)
 var command_keys_white_list : Dictionary = {
-    "Escape": 1,
-    "Enter": 1,
-    # "Ctrl+F": 1,  # Uncomment if you would like move-forward by page function instead of search on slash
-    "Ctrl+B": 1,
-    "Ctrl+U": 1,
-    "Ctrl+D": 1,
-    "Ctrl+O": 1,
-    "Ctrl+I": 1,
-    "Ctrl+R": 1
+    "Enter":            1,
+    "Escape":           1,
+    "Ctrl+B":           1,
+    "Ctrl+BracketLeft":  1,
+    "Ctrl+C":           1,
+    "Ctrl+D":           1,
+    # "Ctrl+F":          1,  Uncomment if  you would like move-forward by page function instead of search on slash
+    "Ctrl+I":           1,
+    "Ctrl+O":           1,
+    "Ctrl+R":           1,
+    "Ctrl+U":           1,
 }
 
 
@@ -385,7 +387,7 @@ class Command:
         for from in [Position.new(symbol.line, 0), Position.new(0, 0)]:
             var parser = GDScriptParser.new(ed, from)
             if not parser.parse_until(symbol):
-               continue
+                continue
 
             if symbol.char in ")]}":
                 parser.stack.reverse()
@@ -620,7 +622,7 @@ class Command:
     static func repeat_last_edit(args: Dictionary, ed: EditorAdaptor, vim: Vim) -> void:
         var repeat : int = args.repeat
         vim.macro_manager.play_macro(repeat, ".", ed)
-        
+
     static func record_macro(args: Dictionary, ed: EditorAdaptor, vim: Vim) -> void:
         var name = args.selected_character
         if name in ALPHANUMERIC:
@@ -1085,7 +1087,7 @@ class MacroManager:
             macro.play(ed)
 
         ed.simulate_press(KEY_NONE, CODE_MACRO_PLAY_END)  # This special marks the end of macro play
-        
+
     func on_macro_finished(ed: EditorAdaptor):
         var name : String = playing_names.pop_back()
         if playing_names.is_empty():
@@ -1420,7 +1422,7 @@ class CommandDispatcher:
 
         vim.macro_manager.push_key(key)
 
-        if key_code == "Escape":
+        if ["Escape", "Ctrl+BracketLeft", "Ctrl+C"].has(key_code):
             input_state.clear()
             vim.macro_manager.on_command_processed({}, vim.current.insert_mode)  # From insert mode to normal mode, this marks the end of an edit command
             vim.current.enter_normal_mode()
@@ -1572,7 +1574,7 @@ class CommandDispatcher:
                         ed.select(new_pos.line, 0, start.line + 1, 0)
                     process_operator(command.operator, operator_args, ed, vim)
                 return true
-        
+
         return false
 
     func process_action(action: String, action_args: Dictionary, ed: EditorAdaptor, vim: Vim) -> void:
@@ -1623,4 +1625,3 @@ class CommandDispatcher:
             print("  Motion: %s %s to %s" % [motion, motion_args, result])
 
         return result
-
